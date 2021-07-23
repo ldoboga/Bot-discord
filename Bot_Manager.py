@@ -1,6 +1,5 @@
 import discord
 import datetime
-import random
 from juegos.tateti import *
 from juegos.Ahorcado import *
 from discord import client
@@ -8,8 +7,12 @@ from discord.ext import commands
 
 dic_tateti = {}
 dic_ahorcado = {}
+dic_tateti4 = {}
 
 bot = commands.Bot(command_prefix = '>')
+
+lista_ahorcado = palabras()
+print(lista_ahorcado)
 
 ######### comandos tateti
 
@@ -80,19 +83,55 @@ async def tateti_error(ctx, error):
 @bot.command(aliases = ['a'])
 async def ahorcado(ctx):
     global dic_ahorcado
-    dic_ahorcado.setdefault(ctx.guild.name, Ahorcado(True, ctx.author.id, ctx.guild.name))
+    dic_ahorcado.setdefault(ctx.guild.name, Ahorcado(True, ctx.author.id))
     if dic_ahorcado[ctx.guild.name].game_over:
-        dic_ahorcado[ctx.guild.name].cambiar_valores(False, ctx.author.id, ctx.guild.name)
+        dic_ahorcado[ctx.guild.name].cambiar_valores(False, ctx.author.id)
         await ctx.send(dic_ahorcado[ctx.guild.name].quien_juega())
     else:
         await ctx.send('Ya hay una partida en juego')
      
 @bot.command(aliases = ['l'])
-async def longitud(ctx):   
+async def longitud(ctx, longitud : int):   
     global dic_ahorcado
-    
+    dic_ahorcado.setdefault(ctx.guild.name, Ahorcado(True, ''))
+    if dic_ahorcado[ctx.guild.name].comprobar_longitud(longitud, ctx.author.id):
+        await ctx.send(dic_ahorcado[ctx.guild.name].palabras_por_longitud(longitud, lista_ahorcado))      
+    else:
+        await ctx.send(dic_ahorcado[ctx.guild.name].respuestas_longitud(longitud, ctx.author.id))
+    print(dic_ahorcado[ctx.guild.name].palabra)
         
+@bot.command(aliases = ['la'])
+async def letra(ctx, letra : str):   
+    global dic_ahorcado
+    dic_ahorcado.setdefault(ctx.guild.name, Ahorcado(True, ''))
+    if dic_ahorcado[ctx.guild.name].comprobar_letra(letra.lower(), ctx.author.id):
+        await ctx.send(dic_ahorcado[ctx.guild.name].letra_en_palabra(letra.lower()))
+        if dic_ahorcado[ctx.guild.name].comprobar_victoria():
+            await ctx.send(dic_ahorcado[ctx.guild.name].ganar_o_perder())
+    else:
+        await ctx.send(dic_ahorcado[ctx.guild.name].respuesta_letra(letra.lower(), ctx.author.id))
+        
+@bot.command(aliases = ['ra'])
+async def reset_ahorcado(ctx):
+    global dic_ahorcado
+    dic_ahorcado.setdefault(ctx.guild.name, Ahorcado(True, ''))
+    dic_ahorcado[ctx.guild.name].reiniciar_valores()
+    await ctx.send('El juego se reinicio. Vuelva a comenzar una partida')
+        
+@longitud.error
+async def ahorcado_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Tiene que enviar una longitud')
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send('La longitud tiene que ser un numero')
+        
+@letra.error
+async def ahorcado_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Por favor ingrese una letra')   
 
+
+######### comandos ahorcado
 
 
 @bot.event
