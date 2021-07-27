@@ -1,3 +1,4 @@
+from juegos.Tateti4x4 import Tateti4x4
 import discord
 import datetime
 from juegos.tateti import *
@@ -19,47 +20,55 @@ print(lista_ahorcado)
 @bot.command(aliases = ["t", "tictactoe"])
 async def tateti(ctx, p2 : discord.Member):
     global dic_tateti
-    dic_tateti.setdefault(ctx.guild.name,[True, ctx.author.id, p2.id, '', 0, '',False])
-    if dic_tateti[ctx.guild.name][0]:
-        dic_tateti[ctx.guild.name][1] = ctx.author.id
-        dic_tateti[ctx.guild.name][2] = p2.id
-        resultado, dic_tateti = juego_nuevo_tateti(dic_tateti, ctx.guild.name, ctx.author.id, p2.bot)
-        await ctx.send(resultado)
-        if not dic_tateti[ctx.guild.name][0] and ctx.author.id != dic_tateti[ctx.guild.name][2] and not p2.bot:
-            resultado = deseas_jugar_tateti(dic_tateti, ctx.guild.name)
-            await ctx.send(resultado)
+    dic_tateti.setdefault(ctx.guild.name, Tateti())
+    if dic_tateti[ctx.guild.name].game_over:
+        dic_tateti[ctx.guild.name].cambiar_valores(str(ctx.author.id), str(p2.id))
+        if dic_tateti[ctx.guild.name].comprobaciones_tateti(p2.bot):
+            await ctx.send(dic_tateti[ctx.guild.name].respuesta_tateti_bien())
+        else:
+            await ctx.send(dic_tateti[ctx.guild.name].respuesta_tateti_mal(p2.bot))
     else:
-        await ctx.send('Ya hay una partida en juego')
-    print(dic_tateti)
+        await ctx.send('Ya hay una partida en curso')
     
 @bot.command(aliases = ["p"])
 async def place(ctx, pos : int):
     global dic_tateti
-    dic_tateti.setdefault(ctx.guild.name,[True, '', '', '', 0, '',False])
-    resultado, dic_tateti, tablero = jugar_tateti(dic_tateti, ctx.guild.name, ctx.author.id, pos)
-    for i in tablero:
-        await ctx.send(i)
-    await ctx.send(resultado)
+    dic_tateti.setdefault(ctx.guild.name, Tateti())
+    if dic_tateti[ctx.guild.name].comprobar_place(str(ctx.author.id), pos):
+        resultado , tablero = dic_tateti[ctx.guild.name].place(pos)
+        for lines in tablero:
+            await ctx.send(lines)
+        await ctx.send(resultado)
+    else:
+        await ctx.send(dic_tateti[ctx.guild.name].resultados_place(str(ctx.author.id), pos))
 
 @bot.command(aliases = ["yes", "si", "aceptar"])
 async def y(ctx):
     global dic_tateti
-    dic_tateti.setdefault(ctx.guild.name,[True, '', '', '', 0, '',False])
-    resultado, dic_tateti, tablero = aceptar_juego_tateti(dic_tateti,ctx.guild.name,ctx.author.id)
-    if dic_tateti[ctx.guild.name][5] != '' and not dic_tateti[ctx.guild.name][6]:
-        for line in tablero:
-            await ctx.send(line)
-        dic_tateti[ctx.guild.name][6] = True
-        
-    print(dic_tateti)
-    await ctx.send(resultado)
+    dic_tateti.setdefault(ctx.guild.name, Tateti())
+    if dic_tateti[ctx.guild.name].comprobacion_yes(str(ctx.author.id)):
+        for linea in dic_tateti[ctx.guild.name].imprimir_tablero_tateti():
+            await ctx.send(linea)
+        await ctx.send(dic_tateti[ctx.guild.name].turno_random())
+    else:
+        await ctx.send(dic_tateti[ctx.guild.name].resultado_yes(str(ctx.author.id)))
 
 @bot.command(aliases = ["no", "cancelar"])
 async def n(ctx):
     global dic_tateti
-    dic_tateti.setdefault(ctx.guild.name,[True, '', '', '', 0, '',False])
-    resultado, dic_tateti = no_acepta_tateti(dic_tateti, ctx.guild.name, ctx.author.id)
-    await ctx.send(resultado)
+    dic_tateti.setdefault(ctx.guild.name, Tateti())
+    if dic_tateti[ctx.guild.name].comprobacion_yes(str(ctx.author.id)):
+        dic_tateti[ctx.guild.name].reset()
+        await ctx.send('<@' + str(ctx.author.id) + '> se cago')
+    else:
+        await ctx.send(dic_tateti[ctx.guild.name].resultado_yes(str(ctx.author.id)))
+        
+@bot.command(aliases = ['rt'])
+async def reset_tateti(ctx):
+    global dic_tateti
+    dic_tateti.setdefault(ctx.guild.name, Tateti())
+    dic_tateti[ctx.guild.name].reset()
+    await ctx.send('El juego se reseteo')
     
 @tateti.error
 async def tateti_error(ctx, error):
@@ -75,11 +84,8 @@ async def tateti_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send('tenes que ingresar un numero entero chaval')    
     
-    
-    
-    
-    
 ######### comandos ahorcado
+
 @bot.command(aliases = ['a'])
 async def ahorcado(ctx):
     global dic_ahorcado
@@ -129,13 +135,80 @@ async def ahorcado_error(ctx, error):
 async def ahorcado_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Por favor ingrese una letra')   
+        
+######### comandos tateti 4x4
 
-
-######### comandos ahorcado
-
-
+@bot.command(aliases = ['t4', 'tictactoe4'])
+async def tateti4(ctx, p2 : discord.Member):
+    global dic_tateti4
+    dic_tateti4.setdefault(ctx.guild.name, Tateti4x4())
+    if dic_tateti4[ctx.guild.name].game_over:
+        dic_tateti4[ctx.guild.name].cambiar_valores(str(ctx.author.id), str(p2.id))
+        if dic_tateti4[ctx.guild.name].comprobaciones_tateti(p2.bot):
+            await ctx.send(dic_tateti4[ctx.guild.name].respuesta_tateti_bien())
+        else:
+            await ctx.send(dic_tateti4[ctx.guild.name].respuesta_tateti_mal(p2.bot))
+    else:
+        await ctx.send('Ya hay una partida en curso')
+    
+@bot.command(aliases = ['y4'])
+async def yes4(ctx):
+    global dic_tateti4
+    dic_tateti4.setdefault(ctx.guild.name, Tateti4x4())
+    if dic_tateti4[ctx.guild.name].comprobacion_yes(str(ctx.author.id)):
+        for linea in dic_tateti4[ctx.guild.name].imprimir_tablero_tateti():
+            await ctx.send(linea)
+        await ctx.send(dic_tateti4[ctx.guild.name].turno_random())
+    else:
+        await ctx.send(dic_tateti4[ctx.guild.name].resultado_yes(str(ctx.author.id)))
+    
+@bot.command(aliases = ['n4'])
+async def no4(ctx):
+    global dic_tateti4
+    dic_tateti4.setdefault(ctx.guild.name, Tateti4x4())
+    if dic_tateti4[ctx.guild.name].comprobacion_yes(str(ctx.author.id)):
+        dic_tateti4[ctx.guild.name].reset()
+        await ctx.send('<@' + str(ctx.author.id) + '> se cago')
+    else:
+        await ctx.send(dic_tateti4[ctx.guild.name].resultado_yes(str(ctx.author.id)))
+    
+@bot.command(aliases = ['p4'])
+async def place4(ctx, pos : int):
+    global dic_tateti4
+    dic_tateti4.setdefault(ctx.guild.name, Tateti4x4())
+    if dic_tateti4[ctx.guild.name].comprobar_place(str(ctx.author.id), pos):
+        resultado , tablero = dic_tateti4[ctx.guild.name].place(pos)
+        for lines in tablero:
+            await ctx.send(lines)
+        await ctx.send(resultado)
+    else:
+        await ctx.send(dic_tateti4[ctx.guild.name].resultados_place(str(ctx.author.id), pos))
+        
+@bot.command(aliases = ['rt4'])
+async def reset_tateti_4x4(ctx):
+    global dic_tateti4
+    dic_tateti4.setdefault(ctx.guild.name, Tateti4x4())
+    dic_tateti4[ctx.guild.name].reset()
+    await ctx.send('El juego se reseteo')
+    
+@tateti4.error
+async def tateti_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('menciona a una persona para este comando')
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send('Tenes que mencionar al jugador')
+        
+@place4.error
+async def tateti_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('por favor ingrese una posición que le gustaría marcar')
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send('tenes que ingresar un numero entero chaval') 
+    
+##############################################################
+    
 @bot.event
 async def on_ready():
     print('Bot encendido')
     
-bot.run('ODY0OTg1NDE3MzM3Mjc0Mzk5.YO9acg.kQr01qTlYVYeEbYs9MRhf_AMoU8')
+bot.run('token')

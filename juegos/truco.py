@@ -1,0 +1,2 @@
+class truco():
+    pass
