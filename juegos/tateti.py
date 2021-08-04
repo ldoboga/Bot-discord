@@ -1,5 +1,6 @@
 import random
 
+# Declaracion de contantes
 MIN_POSITION = 1
 MAX_POSITION = 9
 GANAR = [
@@ -12,15 +13,16 @@ GANAR = [
     [0, 4, 8],
     [2, 4, 6]
 ]
-
 TABLERO_LIMPIO = [
         ':white_large_square:', ':white_large_square:', ':white_large_square:',
         ':white_large_square:', ':white_large_square:', ':white_large_square:',
         ':white_large_square:', ':white_large_square:', ':white_large_square:'
         ]
 
+# Declaracion de clase tateti
 class Tateti():
     
+    # Funcion constructora del objeto
     def __init__(self):
         self.game_over = True
         self.player_1 = ''
@@ -28,7 +30,8 @@ class Tateti():
         self.turn = ''
         self.count = 0
         self.board = TABLERO_LIMPIO
-        
+
+    # Funcion para resetear el juego    
     def reset(self):
         self.game_over = True
         self.player_1 = ''
@@ -37,17 +40,21 @@ class Tateti():
         self.count = 0
         self.board = TABLERO_LIMPIO
         
+    # Funcion para agregar los jugadores de la partida
     def cambiar_valores(self, p1, p2):
         self.player_1 = p1
         self.player_2 = p2
         
+    # Funcion que comprueba las cosas necesarias para empezar una nueva partida
     def comprobaciones_tateti(self, bot):
         return self.game_over and self.player_2 != self.player_1 and not bot
     
+    # Respuesta en caso de que la comprobacion de la funcion anterior sea correcta
     def respuesta_tateti_bien(self):
         self.game_over = False
         return 'Los participantes son <@' + self.player_1 + '> y <@' + self.player_2 + '>\n<@' + self.player_2 + '> aceptas el duelo de <@' + self.player_1 + '> (>y / >n aceptar/cancelar)'
         
+    # Respuesta en caso de que la comprobacion de la funcion anterior sea incorrecta
     def respuesta_tateti_mal(self, bot):
         if bot:
             resultado = 'No podes jugar contra un bot'
@@ -55,9 +62,11 @@ class Tateti():
             resultado = 'No podes jugar contra vos mismo'
         return resultado
     
+    # Funcion que comprueba que se cumplan las cosas necesarias para aceptar la partida
     def comprobacion_yes(self, p2):
         return not self.game_over and self.player_2 == p2 and self.turn == ''
-    
+
+    # Respuesta en caso de que la comprobacion de la funcion anterior sea incorrecta
     def resultado_yes(self, p2):
         if self.game_over:
             resultado = 'No hay ninguna partida en curso'
@@ -67,6 +76,7 @@ class Tateti():
             resultado = 'No eres el jugador que fue retado a la partida'
         return resultado
             
+    # Funcion que elije un jugador aleatorio entre los dos jugadores para que tenga el primer turno
     def turno_random(self):
         lista = []
         lista.append(self.player_1)
@@ -74,6 +84,7 @@ class Tateti():
         self.turn = random.choice(lista)
         return 'El turno es de <@' + self.turn + '>'
     
+    # Funcion que crea una lista para imprimir el tablero
     def imprimir_tablero_tateti(self):
         line = ''
         lines = []
@@ -86,9 +97,11 @@ class Tateti():
                 line += ' ' + self.board[i]
         return lines
     
+    # Funcion que comprueba que se cumplan los requisitos para el comando place
     def comprobar_place(self, user, pos):
         return not self.game_over and self.turn == user and pos >= MIN_POSITION and pos <= MAX_POSITION and self.board[pos -1] == ':white_large_square:'
     
+    # Respuesta en caso de que la comprobacion de la funcion anterior sea incorrecta
     def resultados_place(self, user, pos):
         if self.game_over:
             resultado = 'Comienza una nueva partida'
@@ -100,16 +113,21 @@ class Tateti():
             resultado = 'Esa posicion ya fue utilizada'
         return resultado
     
+    # Funcion del comando place
     def place(self, pos):
-        
+        MAXICA_CANTIDAD_DE_POSICIONES = 9
+        MARCA_JUGADOR_1 = ':o2:'
+        MARCA_JUGADOR_2 = ':regional_indicator_x:'
+
+        # pone la marca del jugador en la posicion que elijio y da el turno al otro jugador
         if self.turn == self.player_1:
-            mark = ':o2:'
+            mark = MARCA_JUGADOR_1
             self.board[pos - 1] = mark
             self.turn = self.player_2
             tablero = self.imprimir_tablero_tateti()
             resultado = 'Es el turno de <@' + str(self.player_2) + '>'
         elif self.turn == self.player_2:
-            mark = ':regional_indicator_x:'
+            mark = MARCA_JUGADOR_2
             self.board[pos - 1] = mark
             self.turn = self.player_1
             tablero = self.imprimir_tablero_tateti()
@@ -118,9 +136,11 @@ class Tateti():
         
         self.ganar(mark)
         
-        if self.count >= 9:
+        # En caso de que se cumpla la condicion se empata
+        if self.count >= MAXICA_CANTIDAD_DE_POSICIONES:
             resultado = 'Empataron pampus'
             self.reset()
+        # Segun el jugador que gana envia la respuesta y reinicia el jeugo
         elif self.game_over and mark == ':o2:':
             resultado = 'El ganador es <@' + str(self.player_1) + '>'
             self.reset()
@@ -130,6 +150,7 @@ class Tateti():
             
         return resultado, tablero
     
+    # Funcion que comprueba si algun jugador gano la partida
     def ganar(self, mark):
         for condition in GANAR:
             print(condition)
