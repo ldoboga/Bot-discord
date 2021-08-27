@@ -115,7 +115,7 @@ class Tateti():
     
     # Funcion del comando place
     def place(self, pos):
-        MAXICA_CANTIDAD_DE_POSICIONES = 9
+        MAXIMA_CANTIDAD_DE_POSICIONES = 9
         MARCA_JUGADOR_1 = ':o2:'
         MARCA_JUGADOR_2 = ':regional_indicator_x:'
 
@@ -137,15 +137,16 @@ class Tateti():
         self.ganar(mark)
         
         # En caso de que se cumpla la condicion se empata
-        if self.count >= MAXICA_CANTIDAD_DE_POSICIONES:
-            resultado = 'Empataron pampus'
-            self.reset()
+        
         # Segun el jugador que gana envia la respuesta y reinicia el jeugo
-        elif self.game_over and mark == ':o2:':
+        if self.game_over and mark == ':o2:':
             resultado = 'El ganador es <@' + str(self.player_1) + '>'
             self.reset()
         elif self.game_over and mark == ':regional_indicator_x:':
             resultado = 'El ganador es <@' + str(self.player_2) + '>'
+            self.reset()
+        elif self.count >= MAXIMA_CANTIDAD_DE_POSICIONES:
+            resultado = 'Empataron pampus'
             self.reset()
             
         return resultado, tablero

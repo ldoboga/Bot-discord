@@ -111,14 +111,15 @@ class Tateti4x4():
         
         self.ganar(mark)
         
-        if self.count >= 16:
-            resultado = 'Empataron pampus'
-            self.reset()
-        elif self.game_over and mark == ':o2:':
+        
+        if self.game_over and mark == ':o2:':
             resultado = 'El ganador es <@' + str(self.player_1) + '>'
             self.reset()
         elif self.game_over and mark == ':regional_indicator_x:':
             resultado = 'El ganador es <@' + str(self.player_2) + '>'
+            self.reset()
+        elif self.count >= 16:
+            resultado = 'Empataron pampus'
             self.reset()
             
         return resultado, tablero

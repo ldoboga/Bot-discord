@@ -39,8 +39,6 @@ def palabras():
     dic_words = crear_diccionario(lista)
     return dic_words
 
-
-
 class Ahorcado():
     
     def __init__(self, game_over, jugador):

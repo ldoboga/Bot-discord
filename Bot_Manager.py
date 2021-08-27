@@ -211,4 +211,4 @@ async def tateti_error(ctx, error):
 async def on_ready():
     print('Bot encendido')
     
-bot.run('token')
+bot.run('ODY0OTg1NDE3MzM3Mjc0Mzk5.YO9acg.z3_MtUbvOKyhIrJosr73F29s9zI')
